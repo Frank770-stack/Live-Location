@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Location Tracker</title>
+    <link
+      rel="stylesheet"
+      href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
+      crossorigin=""
+    />
+    <script
+      src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
+      crossorigin=""
+    ></script>
+    <style>
+      #map {
+        height: 350px;
+      }
+    </style>
+  </head>
+  <body>
+    <h1>Location Tracker</h1>
+    <div id="map"></div>
+    <script>
+      const backendURL = "http://localhost:3000"; // Change to your backend URL later
+
+      const map = L.map("map").setView([0, 0], 2);
+
+      L.tileLayer("https://tile.openstreetmap.org/{z}/{x}/{y}.png", {
+        maxZoom: 19,
+        attribution:
+          '&copy; <a href="http://www.openstreetmap.org/copyright">OpenStreetMap</a>',
+      }).addTo(map);
+
+      let marker, circle;
+
+      // Function to send the location to the backend
+      function sendLocationToBackend(lat, lng) {
+        fetch(`${backendURL}/save-location`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ latitude: lat, longitude: lng }),
+        })
+          .then((res) => res.json())
+          .then((data) => console.log(data.message))
+          .catch((err) => console.error("Error:", err));
+      }
+
+      // Get the user's location and send it to the backend
+      if ("geolocation" in navigator) {
+        navigator.geolocation.watchPosition(
+          (position) => {
+            const { latitude, longitude } = position.coords;
+            sendLocationToBackend(latitude, longitude);
+          },
+          (error) => {
+            console.error("Geolocation error:", error);
+            alert("Unable to fetch location. Please allow location access.");
+          }
+        );
+      } else {
+        alert("Geolocation is not supported by your browser.");
+      }
+    </script>
+  </body>
+</html>

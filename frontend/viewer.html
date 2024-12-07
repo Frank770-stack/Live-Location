@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Viewer - Location Tracker</title>
+    <link
+      rel="stylesheet"
+      href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
+      crossorigin=""
+    />
+    <script
+      src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
+      crossorigin=""
+    ></script>
+    <style>
+      #map {
+        height: 350px;
+      }
+    </style>
+  </head>
+  <body>
+    <h1>User Location</h1>
+    <div id="map"></div>
+    <script>
+      const backendURL = "http://localhost:3000"; // Replace with your backend URL
+
+      const map = L.map("map").setView([0, 0], 2);
+
+      L.tileLayer("https://tile.openstreetmap.org/{z}/{x}/{y}.png", {
+        maxZoom: 19,
+        attribution:
+          '&copy; <a href="http://www.openstreetmap.org/copyright">OpenStreetMap</a>',
+      }).addTo(map);
+
+      let marker, circle;
+
+      // Fetch the saved location from the backend
+      function fetchLocationFromBackend() {
+        fetch(`${backendURL}/get-location`)
+          .then((res) => res.json())
+          .then((data) => {
+            const { latitude, longitude } = data;
+            if (marker) {
+              map.removeLayer(marker);
+              map.removeLayer(circle);
+            }
+            marker = L.marker([latitude, longitude]).addTo(map);
+            circle = L.circle([latitude, longitude], { radius: 10 }).addTo(map);
+            map.setView([latitude, longitude], 13);
+          })
+          .catch((err) => console.error("Error fetching location:", err));
+      }
+
+      // Fetch the location every 5 seconds
+      setInterval(fetchLocationFromBackend, 5000);
+    </script>
+  </body>
+</html>
